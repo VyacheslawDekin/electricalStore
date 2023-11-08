@@ -1,6 +1,6 @@
 import random
 
-from rest_framework import generics, permissions
+from rest_framework import generics
 from rest_framework_api_key.permissions import HasAPIKey
 from rest_framework.decorators import api_view
 
@@ -16,7 +16,7 @@ from .tasks import send_email
 class SupplierListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = SupplierSerializer
     queryset = Supplier.objects.all()
-    permission_classes = [PermissionIsActive | HasAPIKey, HasAPIKey | permissions.IsAuthenticated]
+    permission_classes = [PermissionIsActive | HasAPIKey]
 
     def get_serializer_class(self):
         if self.request.method == "GET":
@@ -35,7 +35,8 @@ class SupplierListCreateAPIView(generics.ListCreateAPIView):
         id_product = self.request.GET.get("id")
         avg = self.request.GET.get("avg")  #для получения задложенности больше средней просто передадим параметр с любым значением
 
-        query &= Q(employee=self.request.user)
+        if not self.request.user.is_anonymous:
+            query &= Q(employee=self.request.user)
 
         if country:
             query &= Q(address__country=country)
@@ -53,7 +54,7 @@ class SupplierListCreateAPIView(generics.ListCreateAPIView):
 class SupplierRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = SupplierSerializer
     queryset = Supplier.objects.all()
-    permission_classes = [PermissionIsActive | HasAPIKey, permissions.IsAuthenticated | HasAPIKey, PermissionAffiliations]
+    permission_classes = [PermissionIsActive | HasAPIKey, PermissionAffiliations]
 
     lookup_field = 'pk'
     lookup_url_kwarg = 'pk'
@@ -67,13 +68,13 @@ class SupplierRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView
 class ProductListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
-    permission_classes = [PermissionIsActive | HasAPIKey, HasAPIKey | permissions.IsAuthenticated]
+    permission_classes = [PermissionIsActive | HasAPIKey]
 
 
 class ProductRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
-    permission_classes = [PermissionIsActive | HasAPIKey, HasAPIKey | permissions.IsAuthenticated]
+    permission_classes = [PermissionIsActive | HasAPIKey]
 
     lookup_field = 'pk'
     lookup_url_kwarg = 'pk'
